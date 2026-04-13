@@ -51,7 +51,6 @@ print("Shortest distances:", dist)
 # ---------- Алгоритм 2: мінімізація розфарбування ----------
 
 colors = [random.randint(0, N) for _ in range(N)]
-changed = True
 iterations = 0
 
 lock = threading.Lock()
@@ -67,24 +66,24 @@ def minimize(v):
     if new_color < colors[v]:
         with lock:
             colors[v] = new_color
-            changed = True
+            return True
+    return False
 
 
 while True:
+    # випадково вибираємо одну вершину
+    v = random.choice(list(graph.keys()))
     changed = False
-    threads = []
 
-    for v in range(N):
-        t = threading.Thread(target=minimize, args=(v,))
-        threads.append(t)
-        t.start()
-
-    for t in threads:
-        t.join()
+    # запускаємо потік для мінімізації лише цієї вершини
+    t = threading.Thread(target=lambda: minimize(v))
+    t.start()
+    t.join()
 
     iterations += 1
 
-    if not changed:
+    # перевіряємо, чи відбулася зміна
+    if not minimize(v):
         break
 
 print("Final coloring:", colors)
