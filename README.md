@@ -36,8 +36,16 @@ $ python labs/lab4/semafore.py
 
 ### lab 5
 
+Розфарбовування графа
+
 ```
-$ python labs/lab5/finite.py
+$ python labs/lab5/paint-graph.py
+```
+
+Пошук найкоротшої відстані
+
+```
+python labs/lab5/min-dist.py
 ```
 
 ### lab 6
