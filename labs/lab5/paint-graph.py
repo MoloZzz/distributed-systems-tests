@@ -1,6 +1,4 @@
-import threading
 import random
-import copy
 
 graph = {
     0: [1, 2],
@@ -13,55 +11,39 @@ graph = {
 N = len(graph)
 
 colors = [random.randint(0, N) for _ in range(N)]
-new_colors = colors.copy()
 
-barrier = threading.Barrier(N)
-lock = threading.Lock()
+iterations = 0
 
-changed_global = [False]
-stop_flag = [False]
 
-def worker(v):
-    global colors, new_colors, changed_global, stop_flag
+def minimization(v):
+    neighbor_colors = {colors[u] for u in graph[v]}
+    c = 0
+    while c in neighbor_colors:
+        c += 1
 
-    while True:
+    colors[v] = c
+
+
+def is_stable():
+    for v in range(N):
         neighbor_colors = {colors[u] for u in graph[v]}
-
         c = 0
         while c in neighbor_colors:
             c += 1
-
-        if c < colors[v]:
-            new_colors[v] = c
-        else:
-            new_colors[v] = colors[v]
-
-        barrier.wait()
-
-        if new_colors[v] != colors[v]:
-            changed_global[0] = True
-
-        colors[v] = new_colors[v]
-
-        barrier.wait()
-
-        if v == 0:
-            stop_flag[0] = not changed_global[0]
-            changed_global[0] = False
-
-        barrier.wait()
-
-        if stop_flag[0]:
-            break
+        if c != colors[v]:
+            return False
+    return True
 
 
-threads = []
-for v in range(N):
-    t = threading.Thread(target=worker, args=(v,))
-    threads.append(t)
-    t.start()
+while True:
+    v = random.randint(0, N - 1)
 
-for t in threads:
-    t.join()
+    minimization(v)
+    iterations += 1
+
+    if is_stable():
+        break
+
 
 print("Final coloring:", colors)
+print("Iterations:", iterations)
