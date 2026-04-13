@@ -39,51 +39,57 @@ class HTLC:
         return False
 
 
-# --- Симуляція тристороннього Atomic Swap ---
-def atomic_swap():
-    # Учасники
+def successful_swap():
+    logging.info("=== Successful scenario ===")
     A, B, C = "A", "B", "C"
-
-    # Генерація секрету
     secret = "super_secret_value"
     hash_secret = hashlib.sha256(secret.encode()).hexdigest()
     logging.info(f"{A} generated secret and hash.")
 
-    # Тайм-аути
-    T1, T2, T3 = 10, 7, 5  # умовні одиниці часу
-
-    # Створення HTLC
+    T1, T2, T3 = 10, 7, 5
     htlc_AB = HTLC(A, B, hash_secret, T1)
-    logging.info("A locked funds for B.")
-
     htlc_BC = HTLC(B, C, hash_secret, T2)
-    logging.info("B locked funds for C.")
-
     htlc_CA = HTLC(C, A, hash_secret, T3)
+
+    logging.info("A locked funds for B.")
+    logging.info("B locked funds for C.")
     logging.info("C locked funds for A.")
 
-    # --- Успішний сценарій ---
     current_time = 0
-    logging.info("=== Successful scenario ===")
-
-    # A розкриває секрет
+    time.sleep(1); current_time += 1
     htlc_CA.redeem(secret, current_time)
     logging.info("A revealed secret.")
 
-    # C бачить секрет і використовує його
+    time.sleep(1); current_time += 1
     htlc_BC.redeem(secret, current_time)
 
-    # B бачить секрет і використовує його
+    time.sleep(1); current_time += 1
     htlc_AB.redeem(secret, current_time)
 
-    # --- Неуспішний сценарій (тайм-аут) ---
-    logging.info("\n=== Failed scenario (timeout) ===")
-    current_time = 12  # час перевищує всі тайм-аути
 
-    htlc_AB.refund(current_time)
-    htlc_BC.refund(current_time)
+def failed_swap():
+    logging.info("\n=== Failed scenario (timeout) ===")
+    A, B, C = "A", "B", "C"
+    secret = "super_secret_value"
+    hash_secret = hashlib.sha256(secret.encode()).hexdigest()
+    logging.info(f"{A} generated secret and hash.")
+
+    T1, T2, T3 = 10, 7, 5
+    htlc_AB = HTLC(A, B, hash_secret, T1)
+    htlc_BC = HTLC(B, C, hash_secret, T2)
+    htlc_CA = HTLC(C, A, hash_secret, T3)
+
+    logging.info("A locked funds for B.")
+    logging.info("B locked funds for C.")
+    logging.info("C locked funds for A.")
+
+    # Симуляція затримки: учасники не встигають розкрити секрет
+    current_time = 8
     htlc_CA.refund(current_time)
+    htlc_BC.refund(current_time)
+    htlc_AB.refund(current_time)
 
 
 if __name__ == "__main__":
-    atomic_swap()
+    successful_swap()
+    failed_swap()
